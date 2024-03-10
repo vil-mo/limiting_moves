@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 
-use crate::actor::actions::movement::{MovementAction, self};
-use crate::VelocityText;
+use crate::actor::actions::movement::MovementAction;
 
 #[derive(Component)]
 pub struct Energy {
@@ -14,15 +13,15 @@ pub struct Energy {
 
 
 pub(super) fn update_energy(mut query: Query<(&mut Energy, &mut MovementAction)>, time: Res<Time<Virtual>>) {
-    for (mut enery, mut movement) in query.iter_mut() {
+    for (mut energy, mut movement) in query.iter_mut() {
         if movement.direction == Vec2::ZERO {
-            enery.value += enery.accumulation_rate * time.delta_seconds();
+            energy.value += energy.accumulation_rate * time.delta_seconds();
         } else {
-            enery.value -= enery.spending_rate * time.delta_seconds();
-            enery.value = enery.value.max(0.0);
+            energy.value -= energy.spending_rate * time.delta_seconds();
+            energy.value = energy.value.max(0.0);
         }
 
-        if enery.value <= 0.0 {
+        if energy.value <= 0.0 {
             movement.direction = movement.direction * 0.1;
         }
     }
@@ -37,8 +36,8 @@ pub(super) fn update_energy_text(
     character_query: Query<&Energy>,
     mut text_query: Query<&mut Text, With<EnergyText>>,
 ) {
-    let energy = character_query.get_single()?;
-    
+    let Ok(energy) = character_query.get_single() else {return};
+
     text_query.single_mut().sections[0].value = format!(
         "Energy: {:.4}", energy.value
     );
